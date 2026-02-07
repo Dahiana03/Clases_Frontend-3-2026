@@ -8,7 +8,7 @@ function ProductCard({name, category, price, image, description}) {
                 <p className="product-description">{description}</p>
                 <div className="product-footer">
                     <span className="product-price">${price.toFixed(2)}</span>
-                    <button className="btn-like"> ❤️ Me gusta</button>
+                    <button className="btn-like">❤️ Me gusta</button>
                 </div>
             </div>
         </article>
