@@ -75,7 +75,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .btnLike:hover {
@@ -84,13 +84,4 @@
 
 .btnLike:active {
   transform: scale(0.95);
-}
-
-.btnLike.liked {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.btnLike.liked:hover {
-  background: #fecaca;
 }
