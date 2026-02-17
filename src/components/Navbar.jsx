@@ -1,5 +1,4 @@
 import styles from "../styles/Navbar.module.css";
-
 import logo from "../assets/react.svg";
 
 function Navbar({ activePage, onNavigate, user, onSignIn, onSignOut }) {
