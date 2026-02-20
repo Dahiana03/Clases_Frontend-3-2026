@@ -1,25 +1,27 @@
-import { useMemo, useState } from 'react';
-import './App.css';
+import { useMemo, useState } from "react";
 
-import Header from './components/Header';
-import Footer from './components/Footer';
+import "./App.css";
 
-import ProductList from './pages/ProductList';
-import Home from './pages/Home';
-import Cart from './pages/Cart';
+import Footer from "./components/Footer";
+import Header from "./components/Header";
+
+import Cart from "./pages/Cart";
+import Home from "./pages/Home";
+import ProductList from "./pages/ProductList";
 
 function App() {
-  const [activePage, setActivePage] = useState('home');
+  const [activePage, setActivePage] = useState("home");
   const [user, setUser] = useState(null);
 
   const page = useMemo(() => {
-    if (activePage === 'products') return <ProductList />;
-    if (activePage === 'cart') return <Cart />;
+    if (activePage === "products") return <ProductList />;
+    if (activePage === "cart") return <Cart />;
+
     return <Home />;
   }, [activePage]);
 
   const handleSignIn = () => {
-    setUser({ name: 'Usuario' });
+    setUser({ name: "Usuario" });
   };
 
   const handleSignOut = () => {
@@ -44,4 +46,3 @@ function App() {
 }
 
 export default App;
-
