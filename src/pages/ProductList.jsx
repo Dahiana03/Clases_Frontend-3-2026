@@ -9,8 +9,13 @@ import ProductForm from "../components/ProductForm";
 
 function ProductList() {
 
-  const handleAddProduct = (product) => {
-  console.log("Producto recibido desde el form:", product);
+const handleAddProduct = (product) => {
+  setProductsState((prev) => {
+    const maxId = prev.reduce((acc, item) => Math.max(acc, item.id), 0);
+    const nextId = maxId + 1;
+
+    return [...prev, { ...product, id: nextId }];
+  });
 };
 
   const [productsState, setProductsState] = useState(products);
