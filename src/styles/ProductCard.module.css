@@ -134,3 +134,8 @@
 .btnDelete:hover {
   filter: brightness(0.95);
 }
+.productStock {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #374151;
+}
