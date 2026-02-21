@@ -1,8 +1,17 @@
+import { useState } from "react";
+
 import { products } from '../data/products';
 import ProductCard from '../components/ProductCard';
 import styles from '../styles/ProductList.module.css';
 
+
+
+
+
 function ProductList() {
+
+  const [productsState, setProductsState] = useState(products);
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -12,8 +21,10 @@ function ProductList() {
         </p>
       </header>
 
+  
+
       <div className={styles.grid}>
-        {products.map((product) => (
+        {productsState.map((product) => (
           <ProductCard
             key={product.id}
             name={product.name}
