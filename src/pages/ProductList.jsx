@@ -3,12 +3,15 @@ import { useState } from "react";
 import { products } from '../data/products';
 import ProductCard from '../components/ProductCard';
 import styles from '../styles/ProductList.module.css';
-
-
+import ProductForm from "../components/ProductForm";
 
 
 
 function ProductList() {
+
+  const handleAddProduct = (product) => {
+  console.log("Producto recibido desde el form:", product);
+};
 
   const [productsState, setProductsState] = useState(products);
 
@@ -21,7 +24,8 @@ function ProductList() {
         </p>
       </header>
 
-  
+      <ProductForm onSubmit={handleAddProduct} />
+ 
 
       <div className={styles.grid}>
         {productsState.map((product) => (
