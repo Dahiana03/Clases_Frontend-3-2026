@@ -11,9 +11,12 @@ const emptyValues = {
   description: "",
 };
 
-function ProductForm({ initialValues, onSubmit, onCancel, isEditing = false }) {
-  const [values, setValues] = useState(emptyValues);
-
+<ProductForm
+  initialValues={editingProduct}
+  isEditing={Boolean(editingProduct)}
+  onCancel={handleEditCancel}
+  onSubmit={editingProduct ? handleEditSubmit : handleAddProduct}
+/>
   // useEffect: si cambia initialValues (prop), precargamos el formulario
   useEffect(() => {
     if (initialValues) {

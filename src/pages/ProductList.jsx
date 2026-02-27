@@ -22,6 +22,27 @@ const handleAddProduct = (product) => {
 const handleDeleteProduct = (id) => {
   setProductsState((prev) => prev.filter((product) => product.id !== id));
 };
+
+const [editingProduct, setEditingProduct] = useState(null);
+
+const handleEditStart = (product) => {
+  setEditingProduct(product);
+};
+
+const handleEditCancel = () => {
+  setEditingProduct(null);
+};
+
+const handleEditSubmit = (updatedProduct) => {
+  setProductsState((prev) =>
+    prev.map((product) =>
+      product.id === updatedProduct.id ? updatedProduct : product,
+    ),
+  );
+
+  setEditingProduct(null);
+};
+
   const [productsState, setProductsState] = useState(products);
 
   return (
@@ -46,6 +67,7 @@ const handleDeleteProduct = (id) => {
             stock={product.stock}
             image={product.image}
             description={product.description}
+            onEdit={() => handleEditStart(product)}
             onDelete={() => handleDeleteProduct(product.id)}
           />
         ))}
