@@ -22,6 +22,7 @@ function ProductCard({ name, category, price, stock, image, description, onDelet
         <span className={styles.productCategory}>{category}</span>
         <h3 className={styles.productName}>{name}</h3>
         <p className={styles.productDescription}>{description}</p>
+        
         <p className={styles.productStock}>Stock: {stock}</p>
         <div className={styles.productFooter}>
           <span className={styles.productPrice}>${price.toFixed(3)}</span>
@@ -36,14 +37,17 @@ function ProductCard({ name, category, price, stock, image, description, onDelet
 
  
         </div>
-        {onDelete ? (
+        {
+  onDelete ? (
     <div className={styles.cardActions}>
       <button type="button" className={styles.btnDelete} onClick={onDelete}>
         Eliminar
       </button>
     </div>
-  ) : null }
+  ) : null
+}
       </div>
+
     </article>
   );
 }

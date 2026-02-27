@@ -22,7 +22,6 @@ const handleAddProduct = (product) => {
 const handleDeleteProduct = (id) => {
   setProductsState((prev) => prev.filter((product) => product.id !== id));
 };
-
   const [productsState, setProductsState] = useState(products);
 
   return (
