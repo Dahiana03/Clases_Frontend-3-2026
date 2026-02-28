@@ -213,7 +213,7 @@ function ProductForm({ initialValues, isEditing, onCancel, onSubmit }) {
     setValues((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (event) => {
+ const handleSubmit = (event) => {
     event.preventDefault();
 
     const name = values.name.trim();
@@ -223,6 +223,9 @@ function ProductForm({ initialValues, isEditing, onCancel, onSubmit }) {
 
     const price = Number(values.price);
     const stock = Number(values.stock);
+
+    const parsedRating = Number(initialValues?.rating ?? 3);
+    const rating = Number.isFinite(parsedRating) ? Math.min(5, Math.max(1, parsedRating)) : 3;
 
     if (!name) return;
     if (!Number.isFinite(price) || price <= 0) return;
@@ -236,9 +239,9 @@ function ProductForm({ initialValues, isEditing, onCancel, onSubmit }) {
       stock,
       image,
       description,
+      rating,
     });
 
-    // Si no estamos editando, limpiar formulario
     if (!isEditing) {
       setValues(emptyValues);
     }
