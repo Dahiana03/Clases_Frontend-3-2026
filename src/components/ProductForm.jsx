@@ -213,7 +213,7 @@ function ProductForm({ initialValues, isEditing, onCancel, onSubmit }) {
     setValues((prev) => ({ ...prev, [name]: value }));
   };
 
- const handleSubmit = (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
 
     const name = values.name.trim();

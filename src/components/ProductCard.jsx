@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import styles from '../styles/ProductCard.module.css';
-//import { formatCOP } from '../utils/formatCOP';
+import { formatCOP } from '../utils/formatCOP';
 
 function ProductCard({
   name,
@@ -40,13 +40,7 @@ function ProductCard({
         <p className={styles.productDescription}>{description}</p>
         <p className={styles.productStock}>Stock: {stock}</p>
         <div className={styles.productFooter}>
-          <span className={styles.productPrice}>
-          {Number(price).toLocaleString("es-CO", {
-           style: "currency",
-           currency: "COP",
-           minimumFractionDigits: 0,
-          })}
-          </span>
+          <span className={styles.productPrice}>{formatCOP(price)}</span>
           <button
             className={`${styles.btnLike} ${isLiked ? styles.liked : ''}`}
             onClick={handleLike}
