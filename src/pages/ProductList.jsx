@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import ProductCard from '../components/ProductCard';
 import ProductForm from '../components/ProductForm';
 import styles from '../styles/ProductList.module.css';
-import ProductDetailsModal from '../components/ProductDetailsModal';
 import { loadProducts, PRODUCTS_STORAGE_KEY } from '../utils/productsStorage';
 
 const STORAGE_KEY = PRODUCTS_STORAGE_KEY;
@@ -101,7 +100,6 @@ function ProductList() {
                 stock={product.stock}
                 image={product.image}
                 description={product.description}
-                onDetails={() => ProductDetailsModal.open(product)}
                 onDelete={() => handleDeleteProduct(product.id)}
                 onEdit={() => handleEditStart(product)}
               />

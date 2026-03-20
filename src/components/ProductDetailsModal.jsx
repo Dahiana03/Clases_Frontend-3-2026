@@ -80,4 +80,4 @@ function ProductDetailsModal({ isOpen, product, onClose }) {
   );
 }
 
-export default ProductDetailsModal; 
+export default ProductDetailsModal;
