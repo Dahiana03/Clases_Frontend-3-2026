@@ -1,9 +1,8 @@
 import styles from '../styles/Cart.module.css';
 import { formatCOP } from '../utils/formatCOP';
 
-function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart, onContinueShopping }) {
-  const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
-  const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onContinueShopping }) {
+ 
 
   if (cartItems.length === 0) {
     return (
@@ -103,30 +102,6 @@ function Cart({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart, onContin
           </div>
         </div>
 
-        <aside className={styles.summary}>
-          <h2 className={styles.summaryTitle}>Resumen</h2>
-
-          <div className={styles.summaryRows}>
-            <div className={styles.summaryRow}>
-              <span>Productos</span>
-              <span className={styles.summaryValue}>{cartItems.length}</span>
-            </div>
-
-            <div className={styles.summaryRow}>
-              <span>Unidades</span>
-              <span className={styles.summaryValue}>{totalItems}</span>
-            </div>
-
-            <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
-              <span>Total</span>
-              <span className={styles.summaryValue}>{formatCOP(subtotal)}</span>
-            </div>
-          </div>
-
-          <button type="button" className={styles.btnClear} onClick={onClearCart}>
-            Vaciar carrito
-          </button>
-        </aside>
       </div>
     </section>
   );

@@ -1,4 +1,4 @@
-import logo from '../assets/img-logos/logo-Cesde-2023.svg';
+
 import styles from '../styles/Navbar.module.css';
 
 function Navbar({ activePage, onNavigate, user, onSignIn, onSignOut, cartItemCount = 0 }) {
@@ -8,7 +8,7 @@ function Navbar({ activePage, onNavigate, user, onSignIn, onSignOut, cartItemCou
   return (
     <nav className={styles.navbar}>
       <div className={styles.brand}>
-        <img className={styles.logo} src={logo} alt="Logo" />
+        
         <span className={styles.brandName}>Sistema Ventas</span>
       </div>
 
