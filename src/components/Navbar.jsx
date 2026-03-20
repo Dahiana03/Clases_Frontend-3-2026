@@ -1,9 +1,8 @@
-import styles from "../styles/Navbar.module.css";
+import logo from '../assets/img-logos/logo-Cesde-2023.svg';
+import styles from '../styles/Navbar.module.css';
 
-import logo from "../assets/react.svg";
-
-function Navbar({ activePage, onNavigate, user, onSignIn, onSignOut }) {
-  const userLabel = user?.name ?? "Invitado";
+function Navbar({ activePage, onNavigate, user, onSignIn, onSignOut, cartItemCount = 0 }) {
+  const userLabel = user?.name ?? 'Invitado';
   const isLoggedIn = Boolean(user);
 
   return (
@@ -16,24 +15,25 @@ function Navbar({ activePage, onNavigate, user, onSignIn, onSignOut }) {
       <div className={styles.links}>
         <button
           type="button"
-          className={`${styles.link} ${activePage === "home" ? styles.active : ""}`}
-          onClick={() => onNavigate("home")}
+          className={`${styles.link} ${activePage === 'home' ? styles.active : ''}`}
+          onClick={() => onNavigate('home')}
         >
           Inicio
         </button>
         <button
           type="button"
-          className={`${styles.link} ${activePage === "products" ? styles.active : ""}`}
-          onClick={() => onNavigate("products")}
+          className={`${styles.link} ${activePage === 'products' ? styles.active : ''}`}
+          onClick={() => onNavigate('products')}
         >
           Productos
         </button>
         <button
           type="button"
-          className={`${styles.link} ${activePage === "cart" ? styles.active : ""}`}
-          onClick={() => onNavigate("cart")}
+          className={`${styles.link} ${activePage === 'cart' ? styles.active : ''}`}
+          onClick={() => onNavigate('cart')}
         >
           Carrito
+          {cartItemCount > 0 ? <span className={styles.cartBadge}>{cartItemCount}</span> : null}
         </button>
       </div>
 
