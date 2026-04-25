@@ -12,7 +12,7 @@ function Cart({
 }) {
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
 
-  // 🔥 Usamos helper central (NO duplicamos lógica)
+  // 🔥 lógica centralizada
   const { subtotal, tax, shipping, total } = calculateOrderTotals(cartItems);
 
   if (cartItems.length === 0) {
@@ -44,11 +44,12 @@ function Cart({
 
   return (
     <section className={styles.container}>
+      {/* 🔹 HEADER */}
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>Carrito</h1>
           <p className={styles.subtitle}>
-            Gestiona cantidades y revisa tu compra antes de pagar.
+            Gestiona cantidades, revisa subtotales y prepara el checkout.
           </p>
         </div>
 
@@ -60,97 +61,126 @@ function Cart({
       <div className={styles.layout}>
         {/* 🛒 LISTA DE PRODUCTOS */}
         <div className={styles.items}>
-          {cartItems.map((item) => {
-            const itemSubtotal = item.price * item.quantity;
+          <div className={styles.itemList}>
+            {cartItems.map((item) => {
+              const itemSubtotal = item.price * item.quantity;
 
-            return (
-              <article key={item.id} className={styles.item}>
-                <img src={item.image} alt={item.name} className={styles.image} />
+              return (
+                <article key={item.id} className={styles.item}>
+                  <img
+                    className={styles.image}
+                    src={item.image}
+                    alt={item.name}
+                  />
 
-                <div className={styles.itemInfo}>
-                  <span className={styles.category}>{item.category}</span>
-                  <h2 className={styles.name}>{item.name}</h2>
-                  <p>Precio: {formatCOP(item.price)}</p>
-                  <p>Stock: {item.stock}</p>
-                  <p>
-                    Subtotal: <strong>{formatCOP(itemSubtotal)}</strong>
-                  </p>
-                </div>
-
-                <div className={styles.actions}>
-                  <div className={styles.quantityBox}>
-                    <button
-                      onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                      disabled={item.quantity <= 1}
-                    >
-                      -
-                    </button>
-
-                    <span>{item.quantity}</span>
-
-                    <button
-                      onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                      disabled={item.quantity >= item.stock}
-                    >
-                      +
-                    </button>
+                  <div className={styles.itemInfo}>
+                    <span className={styles.category}>{item.category}</span>
+                    <h2 className={styles.name}>{item.name}</h2>
+                    <p className={styles.price}>
+                      Precio unitario: {formatCOP(item.price)}
+                    </p>
+                    <p className={styles.stock}>
+                      Stock disponible: {item.stock}
+                    </p>
+                    <p className={styles.subtotal}>
+                      <span className={styles.subtotalLabel}>Subtotal:</span>{' '}
+                      {formatCOP(itemSubtotal)}
+                    </p>
                   </div>
 
-                  <button onClick={() => onRemoveItem(item.id)}>
-                    Eliminar
-                  </button>
-                </div>
-              </article>
-            );
-          })}
+                  <div className={styles.actions}>
+                    <div className={styles.quantityBox}>
+                      <button
+                        type="button"
+                        className={styles.btnQuantity}
+                        onClick={() =>
+                          onUpdateQuantity(item.id, item.quantity - 1)
+                        }
+                        disabled={item.quantity <= 1}
+                      >
+                        -
+                      </button>
+
+                      <span className={styles.quantityValue}>
+                        {item.quantity}
+                      </span>
+
+                      <button
+                        type="button"
+                        className={styles.btnQuantity}
+                        onClick={() =>
+                          onUpdateQuantity(item.id, item.quantity + 1)
+                        }
+                        disabled={item.quantity >= item.stock}
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      className={styles.btnRemove}
+                      onClick={() => onRemoveItem(item.id)}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         </div>
 
         {/* 💰 RESUMEN */}
         <aside className={styles.summary}>
-          <h2>Resumen</h2>
+          <h2 className={styles.summaryTitle}>Resumen</h2>
 
-          <div className={styles.summaryRow}>
-            <span>Productos:</span>
-            <span>{cartItems.length}</span>
+          <div className={styles.summaryRows}>
+            <div className={styles.summaryRow}>
+              <span>Productos</span>
+              <span className={styles.summaryValue}>{cartItems.length}</span>
+            </div>
+
+            <div className={styles.summaryRow}>
+              <span>Unidades</span>
+              <span className={styles.summaryValue}>{totalItems}</span>
+            </div>
+
+            <div className={styles.summaryRow}>
+              <span>Subtotal</span>
+              <span className={styles.summaryValue}>{formatCOP(subtotal)}</span>
+            </div>
+
+            <div className={styles.summaryRow}>
+              <span>IVA (19%)</span>
+              <span className={styles.summaryValue}>{formatCOP(tax)}</span>
+            </div>
+
+            <div className={styles.summaryRow}>
+              <span>Envío</span>
+              <span className={styles.summaryValue}>
+                {shipping === 0 ? 'Gratis' : formatCOP(shipping)}
+              </span>
+            </div>
+
+            <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
+              <span>Total</span>
+              <span className={styles.summaryValue}>{formatCOP(total)}</span>
+            </div>
           </div>
-
-          <div className={styles.summaryRow}>
-            <span>Unidades:</span>
-            <span>{totalItems}</span>
-          </div>
-
-          <div className={styles.summaryRow}>
-            <span>Subtotal:</span>
-            <span>{formatCOP(subtotal)}</span>
-          </div>
-
-          <div className={styles.summaryRow}>
-            <span>IVA:</span>
-            <span>{formatCOP(tax)}</span>
-          </div>
-
-          <div className={styles.summaryRow}>
-            <span>Envío:</span>
-            <span>{shipping === 0 ? 'Gratis' : formatCOP(shipping)}</span>
-          </div>
-
-          <div className={styles.total}>
-            <strong>Total:</strong>
-            <strong>{formatCOP(total)}</strong>
-          </div>
-
-          <button
-            className={styles.btnCheckout}
-            onClick={onProceedToCheckout}
-          >
-            Proceder al checkout
-          </button>
 
           <button
             className={styles.btnClear}
             onClick={onClearCart}
           >
             Vaciar carrito
+          </button>
+
+          <button
+            className={styles.btnCheckout}
+            onClick={onProceedToCheckout}
+          >
+            Proceder al checkout
           </button>
         </aside>
       </div>

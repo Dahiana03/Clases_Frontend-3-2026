@@ -36,13 +36,16 @@ function App() {
   }, [cartItems]);
 
   // ===============================
-  // 🛒 CARRITO
+  // 🧮 DERIVADOS
   // ===============================
   const cartItemCount = useMemo(
     () => cartItems.reduce((total, item) => total + item.quantity, 0),
     [cartItems]
   );
 
+  // ===============================
+  // 🛒 CARRITO
+  // ===============================
   const handleAddToCart = (product) => {
     if (!product || !Number.isFinite(Number(product.id))) return;
 
@@ -116,7 +119,10 @@ function App() {
     const order = {
       id: `ORD-${Date.now()}`,
       createdAt: new Date().toISOString(),
-      items: cartItems,
+
+      // 🔹 copia segura (recomendado)
+      items: cartItems.map((item) => ({ ...item })),
+
       customer,
       shippingMethod: getShippingOptionById(shippingMethodId),
       paymentMethod: getPaymentMethodById(paymentMethodId),

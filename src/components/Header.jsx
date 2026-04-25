@@ -4,12 +4,14 @@ import Navbar from './Navbar';
 function Header({ user, onSignIn, onSignOut, cartItemCount }) {
   return (
     <header className={styles.header}>
-      <Navbar
-        user={user}
-        onSignIn={onSignIn}
-        onSignOut={onSignOut}
-        cartItemCount={cartItemCount}
-      />
+      <div className={styles.container}>
+        <Navbar
+          user={user}
+          onSignIn={onSignIn}
+          onSignOut={onSignOut}
+          cartItemCount={cartItemCount}
+        />
+      </div>
     </header>
   );
 }
