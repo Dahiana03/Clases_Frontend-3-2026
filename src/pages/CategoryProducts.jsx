@@ -53,7 +53,7 @@ function CategoryProducts({cartItems, onAddToCart }) {
   return (
     <section className={styles.container}>
       <header className={styles.header}>
-        <button type="button" className={styles.btnBack} onClick={() => navigate('/')}>
+        <button type="button" className={styles.btnBack} onClick={() => navigate(-1)}>
           Volver
         </button>
 

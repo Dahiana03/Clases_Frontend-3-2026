@@ -1,128 +1,214 @@
-import { useState, useEffect } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 
 import Footer from './components/Footer';
 import Header from './components/Header';
 import Cart from './pages/Cart';
 import CategoryProducts from './pages/CategoryProducts';
+import Checkout from './pages/Checkout';
 import Home from './pages/Home';
+import OrderConfirmation from './pages/OrderConfirmation';
 import ProductList from './pages/ProductList';
+
+import {
+  calculateOrderTotals,
+  getPaymentMethodById,
+  getShippingOptionById,
+} from './utils/calculateOrderTotals';
+
 import { CART_STORAGE_KEY, loadCartItems } from './utils/cartStorage';
+import { saveOrder } from './utils/ordersStorage';
 
 import './App.css';
 
 function App() {
-
   const [user, setUser] = useState(null);
   const [cartItems, setCartItems] = useState(loadCartItems);
+  const [latestOrder, setLatestOrder] = useState(null);
 
+  const navigate = useNavigate();
 
-   useEffect(() => {
+  // ===============================
+  // 💾 LOCAL STORAGE
+  // ===============================
+  useEffect(() => {
     window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const handleAddToCart = (product) => {
-    if (!product || !Number.isFinite(Number(product.id))) {
-      return;
-    }
+  // ===============================
+  // 🛒 CARRITO
+  // ===============================
+  const cartItemCount = useMemo(
+    () => cartItems.reduce((total, item) => total + item.quantity, 0),
+    [cartItems]
+  );
 
-    setCartItems((currentItems) => {
-      const existingItem = currentItems.find((item) => item.id === product.id);
+  const handleAddToCart = (product) => {
+    if (!product || !Number.isFinite(Number(product.id))) return;
+
+    setCartItems((items) => {
+      const existing = items.find((i) => i.id === product.id);
+
       const stock =
         Number.isFinite(Number(product.stock)) && Number(product.stock) > 0
           ? Number(product.stock)
           : 1;
 
-      if (!existingItem) {
+      if (!existing) {
         return [
-          ...currentItems,
+          ...items,
           {
+            ...product,
             id: Number(product.id),
-            name: product.name,
-            category: product.category,
             price: Number(product.price) || 0,
             stock,
-            image: product.image,
             quantity: 1,
           },
         ];
       }
 
-      return currentItems.map((item) => {
-        if (item.id !== product.id) {
-          return item;
-        }
-
-        return {
-          ...item,
-          stock,
-          quantity: Math.min(item.quantity + 1, stock),
-        };
-      });
+      return items.map((item) =>
+        item.id === product.id
+          ? {
+              ...item,
+              stock,
+              quantity: Math.min(item.quantity + 1, stock),
+            }
+          : item
+      );
     });
   };
 
-  const handleUpdateCartItemQuantity = (productId, nextQuantity) => {
-    setCartItems((currentItems) =>
-      currentItems.flatMap((item) => {
-        if (item.id !== productId) {
-          return [item];
-        }
+  const handleUpdateCartItemQuantity = (id, qty) => {
+    setCartItems((items) =>
+      items.flatMap((item) => {
+        if (item.id !== id) return [item];
 
-        const stock =
-          Number.isFinite(Number(item.stock)) && Number(item.stock) > 0 ? Number(item.stock) : 1;
-        const normalizedQuantity = Math.max(
-          1,
-          Math.min(stock, Math.floor(Number(nextQuantity) || 1))
-        );
+        const stock = item.stock || 1;
+        const newQty = Math.max(1, Math.min(stock, Math.floor(qty)));
 
-        return normalizedQuantity > 0 ? [{ ...item, quantity: normalizedQuantity }] : [];
+        return newQty > 0 ? [{ ...item, quantity: newQty }] : [];
       })
     );
   };
 
-  const handleRemoveCartItem = (productId) => {
-    setCartItems((currentItems) => currentItems.filter((item) => item.id !== productId));
+  const handleRemoveCartItem = (id) => {
+    setCartItems((items) => items.filter((i) => i.id !== id));
   };
 
-  const handleClearCart = () => {
+  const handleClearCart = () => setCartItems([]);
+
+  // ===============================
+  // 💳 CHECKOUT
+  // ===============================
+  const handleStartCheckout = () => {
+    navigate('/checkout');
+  };
+
+  const handleCompleteCheckout = ({ customer, shippingMethodId, paymentMethodId }) => {
+    if (cartItems.length === 0) {
+      navigate('/cart');
+      return;
+    }
+
+    const totals = calculateOrderTotals(cartItems, shippingMethodId);
+
+    const order = {
+      id: `ORD-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      items: cartItems,
+      customer,
+      shippingMethod: getShippingOptionById(shippingMethodId),
+      paymentMethod: getPaymentMethodById(paymentMethodId),
+      totals,
+    };
+
+    saveOrder(order);
+    setLatestOrder(order);
     setCartItems([]);
+
+    navigate('/order-confirmation');
   };
 
-
-  const handleSignIn = () => {
-    setUser({ name: 'Usuario' });
+  const handleBackHome = () => {
+    setLatestOrder(null);
+    navigate('/');
   };
 
-  const handleSignOut = () => {
-    setUser(null);
-  };
+  // ===============================
+  // 👤 USER
+  // ===============================
+  const handleSignIn = () => setUser({ name: 'Usuario' });
+  const handleSignOut = () => setUser(null);
 
+  // ===============================
+  // 🚀 RENDER
+  // ===============================
   return (
     <div className="app">
       <Header
         user={user}
         onSignIn={handleSignIn}
         onSignOut={handleSignOut}
-
+        cartItemCount={cartItemCount}
       />
 
       <main className="main">
         <Routes>
           <Route path="/" element={<Home />} />
+
           <Route
-            path='/category/:categoryName'
-            element={<CategoryProducts cartItems={cartItems}/>}
+            path="/products"
+            element={<ProductList onAddToCart={handleAddToCart} />}
           />
-          <Route path="/products" element={<ProductList />} />
+
+          <Route
+            path="/category/:categoryName"
+            element={
+              <CategoryProducts
+                cartItems={cartItems}
+                onAddToCart={handleAddToCart}
+              />
+            }
+          />
+
           <Route
             path="/cart"
-            element={<Cart cartItems={cartItems} />}
+            element={
+              <Cart
+                cartItems={cartItems}
+                onUpdateQuantity={handleUpdateCartItemQuantity}
+                onRemoveItem={handleRemoveCartItem}
+                onClearCart={handleClearCart}
+                onContinueShopping={() => navigate('/')}
+                onProceedToCheckout={handleStartCheckout}
+              />
+            }
           />
+
           <Route
-            path="*"
-            element={<Navigate to="/" replace />}
+            path="/checkout"
+            element={
+              <Checkout
+                cartItems={cartItems}
+                user={user}
+                onBack={() => navigate('/cart')}
+                onCompleteCheckout={handleCompleteCheckout}
+              />
+            }
           />
+
+          <Route
+            path="/order-confirmation"
+            element={
+              <OrderConfirmation
+                order={latestOrder}
+                onBackHome={handleBackHome}
+              />
+            }
+          />
+
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
 
