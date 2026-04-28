@@ -61,4 +61,14 @@ export const products = [
     image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnUcgfZTf-WqZTM5yCxy2V6OfI9fA6V9r7oA&s',
     description: 'Webcam Full HD 1080p ideal para videollamadas y streaming',
   },
+  {
+    id: 7,
+    name: 'Disco Duro Externo Seagate 2TB',
+    category: 'Almacenamiento',
+    rating: 4.5,
+    price: 200000,
+    stock: 15,
+    image: 'https://images.unsplash.com/photo-1587825140708-9b1c9e0a1d4c?w=400',
+    description: 'Disco duro externo portátil con conexión USB 3.0 y capacidad de 2TB',
+  }
 ];
