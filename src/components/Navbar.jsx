@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
 
 import logo from '../assets/img-logos/logo-Cesde-2023.svg';
 import styles from '../styles/Navbar.module.css';
@@ -8,54 +9,63 @@ function Navbar({ user, onSignIn, onSignOut, cartItemCount = 0 }) {
   const isLoggedIn = Boolean(user);
   const location = useLocation();
 
-  // 🔹 Para marcar activo "Carrito" en todo el flujo
+  const linksRef = useRef(null);
+  const [indicatorStyle, setIndicatorStyle] = useState({});
+
   const isCartSection =
     location.pathname.startsWith('/cart') ||
     location.pathname.startsWith('/checkout') ||
     location.pathname.startsWith('/order-confirmation');
 
-  // 🔹 Para marcar activo "Inicio" incluyendo categorías
   const isHomeSection =
     location.pathname === '/' || location.pathname.startsWith('/category/');
 
+  const getLinkClass = (isActive) =>
+    `${styles.link} ${isActive ? styles.active : ''}`;
+
+  // 🔥 mover indicador
+  useEffect(() => {
+    const activeLink = linksRef.current?.querySelector(`.${styles.active}`);
+
+    if (activeLink) {
+      setIndicatorStyle({
+        width: activeLink.offsetWidth,
+        left: activeLink.offsetLeft,
+      });
+    }
+  }, [location.pathname]);
+
   return (
     <nav className={styles.navbar}>
-      {/* 🔹 Logo */}
+      {/* Logo */}
       <div className={styles.brand}>
         <img className={styles.logo} src={logo} alt="Logo" />
         <span className={styles.brandName}>Sistema Ventas</span>
       </div>
 
-      {/* 🔹 Links */}
-      <div className={styles.links}>
-        {/* Inicio */}
-        <NavLink
-          to="/"
-          end
-          className={() =>
-            `${styles.link} ${isHomeSection ? styles.active : ''}`
-          }
-        >
+      {/* Links */}
+      <div className={styles.links} ref={linksRef}>
+        {/* 🔥 indicador */}
+        <span
+          className={styles.indicator}
+          style={{
+            width: indicatorStyle.width,
+            transform: `translateX(${indicatorStyle.left}px)`,
+          }}
+        />
+
+        <NavLink to="/" end className={() => getLinkClass(isHomeSection)}>
           Inicio
         </NavLink>
 
-        {/* Productos */}
         <NavLink
           to="/products"
-          className={({ isActive }) =>
-            `${styles.link} ${isActive ? styles.active : ''}`
-          }
+          className={({ isActive }) => getLinkClass(isActive)}
         >
           Productos
         </NavLink>
 
-        {/* Carrito */}
-        <NavLink
-          to="/cart"
-          className={() =>
-            `${styles.link} ${isCartSection ? styles.active : ''}`
-          }
-        >
+        <NavLink to="/cart" className={() => getLinkClass(isCartSection)}>
           Carrito
           {cartItemCount > 0 && (
             <span className={styles.cartBadge}>{cartItemCount}</span>
@@ -63,16 +73,16 @@ function Navbar({ user, onSignIn, onSignOut, cartItemCount = 0 }) {
         </NavLink>
       </div>
 
-      {/* 🔹 Usuario */}
+      {/* Usuario */}
       <div className={styles.auth}>
         <span className={styles.userName}>{userLabel}</span>
 
         {isLoggedIn ? (
-          <button type="button" className={styles.authBtn} onClick={onSignOut}>
+          <button className={styles.authBtn} onClick={onSignOut}>
             Sign out
           </button>
         ) : (
-          <button type="button" className={styles.authBtn} onClick={onSignIn}>
+          <button className={styles.authBtn} onClick={onSignIn}>
             Sign in
           </button>
         )}

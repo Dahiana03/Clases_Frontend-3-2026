@@ -53,14 +53,20 @@ export function calculateCartSubtotal(cartItems) {
 }
 
 // ===============================
-// 🔍 HELPERS (ESTO TE FALTABA)
+// 🔍 HELPERS
 // ===============================
 export function getShippingOptionById(id) {
-  return SHIPPING_OPTIONS.find((opt) => opt.id === id) || SHIPPING_OPTIONS[0];
+  return (
+    SHIPPING_OPTIONS.find((opt) => opt.id === id) ||
+    SHIPPING_OPTIONS[0]
+  );
 }
 
 export function getPaymentMethodById(id) {
-  return PAYMENT_METHODS.find((method) => method.id === id) || PAYMENT_METHODS[0];
+  return (
+    PAYMENT_METHODS.find((method) => method.id === id) ||
+    PAYMENT_METHODS[0]
+  );
 }
 
 // ===============================
@@ -84,13 +90,18 @@ export function calculateOrderTotals(
   const shippingOption = getShippingOptionById(shippingMethodId);
 
   const tax = Number((subtotal * TAX_RATE).toFixed(2));
-  const shipping = subtotal > 200000 ? 0 : shippingOption.price;
+
+  // 🔥 ENVÍO GRATIS DESDE 200.000
+  const shipping =
+    subtotal >= 200000 ? 0 : shippingOption.price;
+
+  const total = subtotal + tax + shipping;
 
   return {
     subtotal,
     tax,
     shipping,
-    total: subtotal + tax + shipping,
+    total,
     shippingOption,
   };
 }

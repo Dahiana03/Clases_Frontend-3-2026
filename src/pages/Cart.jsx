@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import styles from '../styles/Cart.module.css';
 import { calculateOrderTotals } from '../utils/calculateOrderTotals';
 import { formatCOP } from '../utils/formatCOP';
@@ -10,10 +11,16 @@ function Cart({
   onContinueShopping,
   onProceedToCheckout,
 }) {
-  const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
+  // 🔢 Total de unidades optimizado
+  const totalItems = useMemo(
+    () => cartItems.reduce((total, item) => total + item.quantity, 0),
+    [cartItems]
+  );
 
-  // 🔥 lógica centralizada
   const { subtotal, tax, shipping, total } = calculateOrderTotals(cartItems);
+
+  // 🚚 Cálculo seguro de envío gratis
+  const remainingForFreeShipping = Math.max(0, 200000 - subtotal);
 
   if (cartItems.length === 0) {
     return (
@@ -44,7 +51,7 @@ function Cart({
 
   return (
     <section className={styles.container}>
-      {/* 🔹 HEADER */}
+      {/* HEADER */}
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>Carrito</h1>
@@ -70,7 +77,7 @@ function Cart({
                   <img
                     className={styles.image}
                     src={item.image}
-                    alt={item.name}
+                    alt={`Imagen de ${item.name}`}
                   />
 
                   <div className={styles.itemInfo}>
@@ -82,6 +89,14 @@ function Cart({
                     <p className={styles.stock}>
                       Stock disponible: {item.stock}
                     </p>
+
+                    {/* ⚠️ Aviso si llega al stock máximo */}
+                    {item.quantity >= item.stock && (
+                      <span className={styles.stockWarning}>
+                        Stock máximo alcanzado
+                      </span>
+                    )}
+
                     <p className={styles.subtotal}>
                       <span className={styles.subtotalLabel}>Subtotal:</span>{' '}
                       {formatCOP(itemSubtotal)}
@@ -117,10 +132,15 @@ function Cart({
                       </button>
                     </div>
 
+                    {/* 🗑 Confirmación antes de eliminar */}
                     <button
                       type="button"
                       className={styles.btnRemove}
-                      onClick={() => onRemoveItem(item.id)}
+                      onClick={() => {
+                        if (confirm('¿Seguro que quieres eliminar este producto?')) {
+                          onRemoveItem(item.id);
+                        }
+                      }}
                     >
                       Eliminar
                     </button>
@@ -138,7 +158,10 @@ function Cart({
           <div className={styles.summaryRows}>
             <div className={styles.summaryRow}>
               <span>Productos</span>
-              <span className={styles.summaryValue}>{cartItems.length}</span>
+              <span className={styles.summaryValue}>
+                {cartItems.length}{' '}
+                {cartItems.length === 1 ? 'producto' : 'productos'}
+              </span>
             </div>
 
             <div className={styles.summaryRow}>
@@ -167,19 +190,24 @@ function Cart({
               <span>Total</span>
               <span className={styles.summaryValue}>{formatCOP(total)}</span>
             </div>
+
+            {/* 🚚 MENSAJE ENVÍO GRATIS */}
+            {shipping > 0 ? (
+              <p className={styles.freeShippingMsg}>
+                Te faltan {formatCOP(remainingForFreeShipping)} para envío gratis 🚚
+              </p>
+            ) : (
+              <p className={styles.freeShippingSuccess}>
+                ¡Felicidades! Tienes envío gratis 🚚🎉
+              </p>
+            )}
           </div>
 
-          <button
-            className={styles.btnClear}
-            onClick={onClearCart}
-          >
+          <button className={styles.btnClear} onClick={onClearCart}>
             Vaciar carrito
           </button>
 
-          <button
-            className={styles.btnCheckout}
-            onClick={onProceedToCheckout}
-          >
+          <button className={styles.btnCheckout} onClick={onProceedToCheckout}>
             Proceder al checkout
           </button>
         </aside>

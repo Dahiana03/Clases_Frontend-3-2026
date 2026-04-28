@@ -32,7 +32,9 @@
   flex-wrap: wrap;
 }
 
+/* 🔥 LINK MEJORADO */
 .link {
+  position: relative;
   border: none;
   background: transparent;
   cursor: pointer;
@@ -43,15 +45,38 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+  transition: all 0.3s ease;
 }
 
+/* 🔥 línea animada */
+.link::after {
+  content: '';
+  position: absolute;
+  left: 10%;
+  bottom: 2px;
+  width: 0%;
+  height: 2px;
+  background: var(--primary);
+  transition: width 0.3s ease;
+}
+
+/* 🔥 hover */
 .link:hover {
   background: var(--gray-100);
 }
 
+.link:hover::after {
+  width: 80%;
+}
+
+/* 🔥 activo */
 .active {
   background: var(--gray-100);
   color: var(--primary-dark);
+}
+
+.active::after {
+  width: 80%;
 }
 
 .auth {
@@ -65,6 +90,7 @@
   color: var(--gray-900);
 }
 
+/* 🔥 botón mejorado */
 .authBtn {
   border: none;
   background: var(--primary);
@@ -73,12 +99,15 @@
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
   font-weight: 800;
+  transition: all 0.25s ease;
 }
 
 .authBtn:hover {
   background: var(--primary-dark);
+  transform: translateY(-1px);
 }
 
+/* 🔥 badge con animación */
 .cartBadge {
   min-width: 1.35rem;
   height: 1.35rem;
@@ -91,8 +120,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.2s ease;
 }
 
+.link:hover .cartBadge {
+  transform: scale(1.15);
+}
+
+/* 📱 responsive */
 @media (max-width: 768px) {
   .navbar {
     align-items: flex-start;

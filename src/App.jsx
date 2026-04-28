@@ -19,12 +19,18 @@ import {
 import { CART_STORAGE_KEY, loadCartItems } from './utils/cartStorage';
 import { saveOrder } from './utils/ordersStorage';
 
+// 🔥 IMPORTANTE: tus productos iniciales
+import { products as initialProducts } from './data/products';
+
 import './App.css';
 
 function App() {
   const [user, setUser] = useState(null);
   const [cartItems, setCartItems] = useState(loadCartItems);
   const [latestOrder, setLatestOrder] = useState(null);
+
+  // 🔥 NUEVO: estado global de productos (stock real)
+  const [products, setProducts] = useState(initialProducts);
 
   const navigate = useNavigate();
 
@@ -44,67 +50,93 @@ function App() {
   );
 
   // ===============================
-  // 🛒 CARRITO
+  // 🛒 CARRITO (CON STOCK REAL)
   // ===============================
   const handleAddToCart = (product) => {
     if (!product || !Number.isFinite(Number(product.id))) return;
 
+    // ❌ evitar stock negativo
+    if (product.stock <= 0) {
+      alert('Producto sin stock');
+      return;
+    }
+
+    // 🔻 descontar stock global
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.id === product.id ? { ...p, stock: p.stock - 1 } : p
+      )
+    );
+
+    // ➕ agregar al carrito
     setCartItems((items) => {
       const existing = items.find((i) => i.id === product.id);
 
-      const stock =
-        Number.isFinite(Number(product.stock)) && Number(product.stock) > 0
-          ? Number(product.stock)
-          : 1;
-
       if (!existing) {
-        return [
-          ...items,
-          {
-            ...product,
-            id: Number(product.id),
-            price: Number(product.price) || 0,
-            stock,
-            quantity: 1,
-          },
-        ];
+        return [...items, { ...product, quantity: 1 }];
       }
 
       return items.map((item) =>
         item.id === product.id
-          ? {
-              ...item,
-              stock,
-              quantity: Math.min(item.quantity + 1, stock),
-            }
+          ? { ...item, quantity: item.quantity + 1 }
           : item
       );
     });
   };
 
-  const handleUpdateCartItemQuantity = (id, qty) => {
+  const handleUpdateCartItemQuantity = (id, newQty) => {
     setCartItems((items) =>
-      items.flatMap((item) => {
-        if (item.id !== id) return [item];
+      items.map((item) => {
+        if (item.id !== id) return item;
 
-        const stock = item.stock || 1;
-        const newQty = Math.max(1, Math.min(stock, Math.floor(qty)));
+        const diff = newQty - item.quantity;
 
-        return newQty > 0 ? [{ ...item, quantity: newQty }] : [];
+        // 🔄 ajustar stock
+        setProducts((prev) =>
+          prev.map((p) =>
+            p.id === id ? { ...p, stock: p.stock - diff } : p
+          )
+        );
+
+        return { ...item, quantity: newQty };
       })
     );
   };
 
   const handleRemoveCartItem = (id) => {
+    const item = cartItems.find((i) => i.id === id);
+
+    if (item) {
+      // 🔺 devolver stock
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === id ? { ...p, stock: p.stock + item.quantity } : p
+        )
+      );
+    }
+
     setCartItems((items) => items.filter((i) => i.id !== id));
   };
 
-  const handleClearCart = () => setCartItems([]);
+  const handleClearCart = () => {
+    // 🔄 devolver todo el stock
+    setProducts((prev) =>
+      prev.map((p) => {
+        const item = cartItems.find((i) => i.id === p.id);
+        return item
+          ? { ...p, stock: p.stock + item.quantity }
+          : p;
+      })
+    );
+
+    setCartItems([]);
+  };
 
   // ===============================
   // 💳 CHECKOUT
   // ===============================
   const handleStartCheckout = () => {
+    if (cartItems.length === 0) return navigate('/cart');
     navigate('/checkout');
   };
 
@@ -117,12 +149,9 @@ function App() {
     const totals = calculateOrderTotals(cartItems, shippingMethodId);
 
     const order = {
-      id: `ORD-${Date.now()}`,
+      id: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       createdAt: new Date().toISOString(),
-
-      // 🔹 copia segura (recomendado)
       items: cartItems.map((item) => ({ ...item })),
-
       customer,
       shippingMethod: getShippingOptionById(shippingMethodId),
       paymentMethod: getPaymentMethodById(paymentMethodId),
@@ -165,14 +194,19 @@ function App() {
 
           <Route
             path="/products"
-            element={<ProductList onAddToCart={handleAddToCart} />}
+            element={
+              <ProductList
+                products={products} // 🔥 ahora usa stock dinámico
+                onAddToCart={handleAddToCart}
+              />
+            }
           />
 
           <Route
             path="/category/:categoryName"
             element={
               <CategoryProducts
-                cartItems={cartItems}
+                products={products} // 🔥 importante
                 onAddToCart={handleAddToCart}
               />
             }

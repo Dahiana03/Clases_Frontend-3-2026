@@ -2,12 +2,9 @@ import { useMemo, useState } from 'react';
 
 import homeStyles from '../styles/Home.module.css';
 import { loadProducts } from '../utils/productsStorage';
-import { Navigate, useNavigate } from 'react-router-dom';
 
 function Home({ onOpenCategory }) {
   const [productsState] = useState(loadProducts);
-  const navigate = useNavigate();
-
 
   const categoryTiles = useMemo(() => {
     const bestByCategory = new Map();
@@ -23,6 +20,7 @@ function Home({ onOpenCategory }) {
       }
 
       const currentRating = Number(current.rating);
+
       const isBetter =
         (Number.isFinite(rating) ? rating : 0) >
         (Number.isFinite(currentRating) ? currentRating : 0);
@@ -34,14 +32,19 @@ function Home({ onOpenCategory }) {
 
     return Array.from(bestByCategory.entries())
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([category, data]) => ({ category, product: data.product }));
+      .map(([category, data]) => ({
+        category,
+        product: data.product,
+      }));
   }, [productsState]);
 
   return (
     <div className={homeStyles.container}>
       <header className={homeStyles.header}>
         <h1 className={homeStyles.title}>Inicio</h1>
-        <p className={homeStyles.subtitle}>Selecciona una categoría para ver sus productos</p>
+        <p className={homeStyles.subtitle}>
+          Selecciona una categoría para ver sus productos
+        </p>
       </header>
 
       <div className={homeStyles.categoryGrid}>
@@ -50,12 +53,19 @@ function Home({ onOpenCategory }) {
             key={category}
             type="button"
             className={homeStyles.categoryTile}
-            onClick={() => navigate (`/category/${encodeURIComponent(category)}`)}
+            onClick={() => onOpenCategory(category)} // 🔥 AQUÍ está el cambio importante
             aria-label={`Ver productos de ${category}`}
           >
-            <img className={homeStyles.categoryImage} src={product.image} alt={product.name} />
+            <img
+              className={homeStyles.categoryImage}
+              src={product.image}
+              alt={`Imagen de ${product.name}`}
+            />
+
             <span className={homeStyles.categoryLabel} aria-hidden="true">
-              <span className={homeStyles.categoryLabelText}>{category}</span>
+              <span className={homeStyles.categoryLabelText}>
+                {category}
+              </span>
             </span>
           </button>
         ))}

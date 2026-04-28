@@ -7,7 +7,7 @@ import styles from '../styles/CategoryProducts.module.css';
 import productListStyles from '../styles/ProductList.module.css';
 import { loadProducts } from '../utils/productsStorage';
 
-function CategoryProducts({cartItems, onAddToCart }) {
+function CategoryProducts({ cartItems, onAddToCart }) {
   const [query, setQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -15,16 +15,19 @@ function CategoryProducts({cartItems, onAddToCart }) {
   const navigate = useNavigate();
   const { categoryName } = useParams();
 
+  // 📦 Decodificar categoría
   const category = useMemo(
     () => (categoryName ? decodeURIComponent(categoryName) : null),
     [categoryName]
   );
 
+  // 🛒 Cantidad en carrito por producto
   const cartQuantityByProductId = useMemo(
     () => new Map(cartItems.map((item) => [item.id, item.quantity])),
     [cartItems]
   );
 
+  // 🔎 Filtro por categoría + búsqueda
   const filteredProducts = useMemo(() => {
     if (!category) return [];
 
@@ -40,6 +43,7 @@ function CategoryProducts({cartItems, onAddToCart }) {
     });
   }, [category, productsState, query]);
 
+  // 🔍 Modal detalles
   const handleOpenDetails = (product) => {
     setSelectedProduct(product);
     setIsModalOpen(true);
@@ -50,19 +54,36 @@ function CategoryProducts({cartItems, onAddToCart }) {
     setSelectedProduct(null);
   };
 
+  // 🔙 Navegación inteligente (PRO)
+  const handleGoBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/');
+    }
+  };
+
   return (
     <section className={styles.container}>
+      {/* HEADER */}
       <header className={styles.header}>
-        <button type="button" className={styles.btnBack} onClick={() => navigate(-1)}>
+        <button
+          type="button"
+          className={styles.btnBack}
+          onClick={handleGoBack}
+        >
           Volver
         </button>
 
         <div className={styles.headerInfo}>
           <h1 className={styles.title}>{category ?? 'Categoría'}</h1>
-          <p className={styles.subtitle}>Filtra por nombre para encontrar un producto</p>
+          <p className={styles.subtitle}>
+            Filtra por nombre para encontrar un producto
+          </p>
         </div>
       </header>
 
+      {/* 🔎 BUSCADOR */}
       <div className={styles.toolbar}>
         <input
           className={styles.input}
@@ -72,10 +93,15 @@ function CategoryProducts({cartItems, onAddToCart }) {
         />
       </div>
 
+      {/* 📦 CONTENIDO */}
       {!category ? (
-        <p className={styles.empty}>Selecciona una categoría desde Inicio.</p>
+        <p className={styles.empty}>
+          Selecciona una categoría desde Inicio.
+        </p>
       ) : filteredProducts.length === 0 ? (
-        <p className={styles.empty}>No hay productos para mostrar.</p>
+        <p className={styles.empty}>
+          No hay productos para mostrar.
+        </p>
       ) : (
         <div className={productListStyles.grid}>
           {filteredProducts.map((product) => (
@@ -90,13 +116,16 @@ function CategoryProducts({cartItems, onAddToCart }) {
               image={product.image}
               description={product.description}
               onAddToCart={onAddToCart}
-              disableAddToCart={(cartQuantityByProductId.get(product.id) ?? 0) >= product.stock}
+              disableAddToCart={
+                (cartQuantityByProductId.get(product.id) ?? 0) >= product.stock
+              }
               onDetails={() => handleOpenDetails(product)}
             />
           ))}
         </div>
       )}
 
+      {/* 🔍 MODAL */}
       <ProductDetailsModal
         isOpen={isModalOpen}
         product={selectedProduct}
