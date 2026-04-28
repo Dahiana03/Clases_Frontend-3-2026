@@ -1,7 +1,23 @@
+import { useNavigate } from 'react-router-dom';
+
 import styles from '../styles/OrderConfirmation.module.css';
 import { formatCOP } from '../utils/formatCOP';
 
 function OrderConfirmation({ order, onBackHome }) {
+  const navigate = useNavigate();
+
+  const handleBackHome = () => {
+    onBackHome?.();
+    navigate('/');
+  };
+
+  const handleViewOrders = () => {
+    navigate('/user/orders');
+  };
+
+  // ===============================
+  // 🚫 SIN ORDEN
+  // ===============================
   if (!order) {
     return (
       <section className={styles.container}>
@@ -13,7 +29,7 @@ function OrderConfirmation({ order, onBackHome }) {
           <button
             type="button"
             className={styles.primaryButton}
-            onClick={onBackHome}
+            onClick={handleBackHome}
           >
             Volver al inicio
           </button>
@@ -22,6 +38,9 @@ function OrderConfirmation({ order, onBackHome }) {
     );
   }
 
+  // ===============================
+  // 📅 FORMATO FECHA
+  // ===============================
   const formattedDate = new Date(order.createdAt).toLocaleString('es-CO', {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -130,8 +149,16 @@ function OrderConfirmation({ order, onBackHome }) {
         <div className={styles.actions}>
           <button
             type="button"
+            className={styles.secondaryButton}
+            onClick={handleViewOrders}
+          >
+            Ver historial
+          </button>
+
+          <button
+            type="button"
             className={styles.primaryButton}
-            onClick={onBackHome}
+            onClick={handleBackHome}
           >
             Volver al inicio
           </button>

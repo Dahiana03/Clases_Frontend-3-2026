@@ -19,7 +19,6 @@ import {
 import { CART_STORAGE_KEY, loadCartItems } from './utils/cartStorage';
 import { saveOrder } from './utils/ordersStorage';
 
-// 🔥 IMPORTANTE: tus productos iniciales
 import { products as initialProducts } from './data/products';
 
 import './App.css';
@@ -28,86 +27,50 @@ function App() {
   const [user, setUser] = useState(null);
   const [cartItems, setCartItems] = useState(loadCartItems);
   const [latestOrder, setLatestOrder] = useState(null);
-
-  // 🔥 NUEVO: estado global de productos (stock real)
   const [products, setProducts] = useState(initialProducts);
 
   const navigate = useNavigate();
 
-  // ===============================
-  // 💾 LOCAL STORAGE
-  // ===============================
+  // 💾 persistencia
   useEffect(() => {
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // ===============================
-  // 🧮 DERIVADOS
-  // ===============================
+  // 🔢 contador carrito
   const cartItemCount = useMemo(
-    () => cartItems.reduce((total, item) => total + item.quantity, 0),
+    () => cartItems.reduce((t, i) => t + i.quantity, 0),
     [cartItems]
   );
 
-  // ===============================
-  // 🛒 CARRITO (CON STOCK REAL)
-  // ===============================
+  // ======================
+  // 🛒 CARRITO CON STOCK
+  // ======================
   const handleAddToCart = (product) => {
-    if (!product || !Number.isFinite(Number(product.id))) return;
+    if (!product || product.stock <= 0) return;
 
-    // ❌ evitar stock negativo
-    if (product.stock <= 0) {
-      alert('Producto sin stock');
-      return;
-    }
-
-    // 🔻 descontar stock global
     setProducts((prev) =>
       prev.map((p) =>
         p.id === product.id ? { ...p, stock: p.stock - 1 } : p
       )
     );
 
-    // ➕ agregar al carrito
     setCartItems((items) => {
       const existing = items.find((i) => i.id === product.id);
 
-      if (!existing) {
-        return [...items, { ...product, quantity: 1 }];
-      }
+      if (!existing) return [...items, { ...product, quantity: 1 }];
 
-      return items.map((item) =>
-        item.id === product.id
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
+      return items.map((i) =>
+        i.id === product.id
+          ? { ...i, quantity: i.quantity + 1 }
+          : i
       );
     });
-  };
-
-  const handleUpdateCartItemQuantity = (id, newQty) => {
-    setCartItems((items) =>
-      items.map((item) => {
-        if (item.id !== id) return item;
-
-        const diff = newQty - item.quantity;
-
-        // 🔄 ajustar stock
-        setProducts((prev) =>
-          prev.map((p) =>
-            p.id === id ? { ...p, stock: p.stock - diff } : p
-          )
-        );
-
-        return { ...item, quantity: newQty };
-      })
-    );
   };
 
   const handleRemoveCartItem = (id) => {
     const item = cartItems.find((i) => i.id === id);
 
     if (item) {
-      // 🔺 devolver stock
       setProducts((prev) =>
         prev.map((p) =>
           p.id === id ? { ...p, stock: p.stock + item.quantity } : p
@@ -119,7 +82,6 @@ function App() {
   };
 
   const handleClearCart = () => {
-    // 🔄 devolver todo el stock
     setProducts((prev) =>
       prev.map((p) => {
         const item = cartItems.find((i) => i.id === p.id);
@@ -132,26 +94,18 @@ function App() {
     setCartItems([]);
   };
 
-  // ===============================
+  // ======================
   // 💳 CHECKOUT
-  // ===============================
-  const handleStartCheckout = () => {
-    if (cartItems.length === 0) return navigate('/cart');
-    navigate('/checkout');
-  };
-
+  // ======================
   const handleCompleteCheckout = ({ customer, shippingMethodId, paymentMethodId }) => {
-    if (cartItems.length === 0) {
-      navigate('/cart');
-      return;
-    }
+    if (cartItems.length === 0) return null;
 
     const totals = calculateOrderTotals(cartItems, shippingMethodId);
 
     const order = {
-      id: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id: `ORD-${Date.now()}`,
       createdAt: new Date().toISOString(),
-      items: cartItems.map((item) => ({ ...item })),
+      items: cartItems,
       customer,
       shippingMethod: getShippingOptionById(shippingMethodId),
       paymentMethod: getPaymentMethodById(paymentMethodId),
@@ -162,6 +116,10 @@ function App() {
     setLatestOrder(order);
     setCartItems([]);
 
+    return order; // 🔥 importante (no navega aquí)
+  };
+
+  const handleSuccessCheckout = () => {
     navigate('/order-confirmation');
   };
 
@@ -170,15 +128,12 @@ function App() {
     navigate('/');
   };
 
-  // ===============================
+  // ======================
   // 👤 USER
-  // ===============================
+  // ======================
   const handleSignIn = () => setUser({ name: 'Usuario' });
   const handleSignOut = () => setUser(null);
 
-  // ===============================
-  // 🚀 RENDER
-  // ===============================
   return (
     <div className="app">
       <Header
@@ -190,13 +145,13 @@ function App() {
 
       <main className="main">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home onOpenCategory={(c) => navigate(`/category/${c}`)} />} />
 
           <Route
             path="/products"
             element={
               <ProductList
-                products={products} // 🔥 ahora usa stock dinámico
+                products={products}
                 onAddToCart={handleAddToCart}
               />
             }
@@ -206,7 +161,7 @@ function App() {
             path="/category/:categoryName"
             element={
               <CategoryProducts
-                products={products} // 🔥 importante
+                cartItems={cartItems}
                 onAddToCart={handleAddToCart}
               />
             }
@@ -217,11 +172,10 @@ function App() {
             element={
               <Cart
                 cartItems={cartItems}
-                onUpdateQuantity={handleUpdateCartItemQuantity}
                 onRemoveItem={handleRemoveCartItem}
                 onClearCart={handleClearCart}
                 onContinueShopping={() => navigate('/')}
-                onProceedToCheckout={handleStartCheckout}
+                onProceedToCheckout={() => navigate('/checkout')}
               />
             }
           />
@@ -234,6 +188,7 @@ function App() {
                 user={user}
                 onBack={() => navigate('/cart')}
                 onCompleteCheckout={handleCompleteCheckout}
+                onSuccess={handleSuccessCheckout}
               />
             }
           />

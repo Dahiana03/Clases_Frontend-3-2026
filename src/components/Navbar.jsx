@@ -12,18 +12,25 @@ function Navbar({ user, onSignIn, onSignOut, cartItemCount = 0 }) {
   const linksRef = useRef(null);
   const [indicatorStyle, setIndicatorStyle] = useState({});
 
+  // ===============================
+  // 📍 DETECCIÓN DE SECCIONES
+  // ===============================
+  const isHomeSection =
+    location.pathname === '/' || location.pathname.startsWith('/category/');
+
   const isCartSection =
     location.pathname.startsWith('/cart') ||
     location.pathname.startsWith('/checkout') ||
     location.pathname.startsWith('/order-confirmation');
 
-  const isHomeSection =
-    location.pathname === '/' || location.pathname.startsWith('/category/');
+  const isAccountSection = location.pathname.startsWith('/user/');
 
   const getLinkClass = (isActive) =>
     `${styles.link} ${isActive ? styles.active : ''}`;
 
-  // 🔥 mover indicador
+  // ===============================
+  // 🔥 INDICADOR ANIMADO
+  // ===============================
   useEffect(() => {
     const activeLink = linksRef.current?.querySelector(`.${styles.active}`);
 
@@ -37,13 +44,13 @@ function Navbar({ user, onSignIn, onSignOut, cartItemCount = 0 }) {
 
   return (
     <nav className={styles.navbar}>
-      {/* Logo */}
+      {/* LOGO */}
       <div className={styles.brand}>
         <img className={styles.logo} src={logo} alt="Logo" />
         <span className={styles.brandName}>Sistema Ventas</span>
       </div>
 
-      {/* Links */}
+      {/* LINKS */}
       <div className={styles.links} ref={linksRef}>
         {/* 🔥 indicador */}
         <span
@@ -71,19 +78,26 @@ function Navbar({ user, onSignIn, onSignOut, cartItemCount = 0 }) {
             <span className={styles.cartBadge}>{cartItemCount}</span>
           )}
         </NavLink>
+
+        <NavLink
+          to="/user/profile"
+          className={() => getLinkClass(isAccountSection)}
+        >
+          Mi cuenta
+        </NavLink>
       </div>
 
-      {/* Usuario */}
+      {/* USUARIO */}
       <div className={styles.auth}>
         <span className={styles.userName}>{userLabel}</span>
 
         {isLoggedIn ? (
-          <button className={styles.authBtn} onClick={onSignOut}>
-            Sign out
+          <button type="button" className={styles.authBtn} onClick={onSignOut}>
+            Salir
           </button>
         ) : (
-          <button className={styles.authBtn} onClick={onSignIn}>
-            Sign in
+          <button type="button" className={styles.authBtn} onClick={onSignIn}>
+            Ingresar
           </button>
         )}
       </div>
