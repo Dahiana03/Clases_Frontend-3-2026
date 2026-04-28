@@ -21,12 +21,17 @@ const normalizeOrder = (order) => {
   return {
     id: String(order?.id ?? crypto.randomUUID()),
 
+    // 🔐 IMPORTANTE: mantener userId
+    userId: String(order?.userId ?? ''),
+
     createdAt: isNaN(parsedDate)
       ? new Date().toISOString()
       : parsedDate.toISOString(),
 
     items: Array.isArray(order?.items)
-      ? order.items.map(normalizeOrderItem).filter((item) => item.id)
+      ? order.items
+          .map(normalizeOrderItem)
+          .filter((item) => item.id)
       : [],
 
     customer: {
@@ -102,16 +107,28 @@ export function saveOrder(order) {
   const normalizedOrder = normalizeOrder(order);
   const currentOrders = loadOrders();
 
-  // 🚫 Evitar duplicados por ID
+  // 🚫 evitar duplicados
   const exists = currentOrders.some((o) => o.id === normalizedOrder.id);
-  if (exists) {
-    return;
-  }
+  if (exists) return;
 
-  // 📦 Limitar cantidad de órdenes almacenadas
+  // 📦 limitar tamaño
   const updatedOrders = [normalizedOrder, ...currentOrders].slice(0, MAX_ORDERS);
 
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedOrders));
+}
+
+// ===============================
+// 👤 FILTRAR POR USUARIO
+// ===============================
+
+export function loadOrdersByUserId(userId) {
+  const normalizedUserId = String(userId ?? '').trim();
+
+  if (!normalizedUserId) return [];
+
+  return loadOrders().filter(
+    (order) => order.userId === normalizedUserId
+  );
 }
 
 // ===============================

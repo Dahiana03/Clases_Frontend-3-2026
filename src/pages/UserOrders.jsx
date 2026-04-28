@@ -1,28 +1,44 @@
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 
 import OrderCard from '../components/OrderCard';
+import useAuth from '../hooks/useAuth';
 import styles from '../styles/UserOrders.module.css';
-import { loadOrders } from '../utils/ordersStorage';
+import { loadOrders, loadOrdersByUserId } from '../utils/ordersStorage';
 
 function UserOrders() {
   const navigate = useNavigate();
-  const orders = useMemo(
-    () =>
-      loadOrders().sort(
-        (leftOrder, rightOrder) => new Date(rightOrder.createdAt) - new Date(leftOrder.createdAt)
-      ),
-    []
-  );
+  const { currentUser } = useAuth();
+
+  const orders = useMemo(() => {
+    let data = [];
+
+    // 🔐 Si hay usuario → solo sus órdenes
+    if (currentUser?.id) {
+      data = loadOrdersByUserId(currentUser.id);
+    } else {
+      // 🌐 fallback → todas (modo local)
+      data = loadOrders();
+    }
+
+    return data.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+  }, [currentUser?.id]);
+
+  // 🔒 protección opcional (recomendado si usas ProtectedRoute)
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
 
   if (orders.length === 0) {
     return (
       <section className={styles.container}>
         <div className={styles.emptyState}>
-          <p className={styles.eyebrow}>Semana 10</p>
-          <h1 className={styles.title}>Mis ordenes</h1>
+          <p className={styles.eyebrow}>Historial</p>
+          <h1 className={styles.title}>Mis órdenes</h1>
           <p className={styles.subtitle}>
-            Todavia no hay compras guardadas. Completa el flujo de checkout para poblar esta vista.
+            Aún no tienes compras registradas. Completa el checkout para ver tus pedidos aquí.
           </p>
           <div className={styles.actions}>
             <button
@@ -32,7 +48,11 @@ function UserOrders() {
             >
               Ir al perfil
             </button>
-            <button type="button" className={styles.primaryButton} onClick={() => navigate('/')}>
+            <button
+              type="button"
+              className={styles.primaryButton}
+              onClick={() => navigate('/')}
+            >
               Explorar productos
             </button>
           </div>
@@ -45,10 +65,10 @@ function UserOrders() {
     <section className={styles.container}>
       <header className={styles.header}>
         <div>
-          <p className={styles.eyebrow}>Semana 10</p>
-          <h1 className={styles.title}>Historial de ordenes</h1>
+          <p className={styles.eyebrow}>Historial</p>
+          <h1 className={styles.title}>Historial de órdenes</h1>
           <p className={styles.subtitle}>
-            Recupera las compras persistidas en localStorage y navega al detalle de cada pedido.
+            Consulta tus compras y revisa el detalle de cada pedido.
           </p>
         </div>
 
@@ -60,7 +80,11 @@ function UserOrders() {
           >
             Mi perfil
           </button>
-          <button type="button" className={styles.primaryButton} onClick={() => navigate('/')}>
+          <button
+            type="button"
+            className={styles.primaryButton}
+            onClick={() => navigate('/')}
+          >
             Volver al inicio
           </button>
         </div>

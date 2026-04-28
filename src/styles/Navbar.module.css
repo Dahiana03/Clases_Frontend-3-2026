@@ -42,13 +42,14 @@
   border-radius: 8px;
   font-weight: 700;
   color: var(--gray-900);
+  text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
   transition: all 0.3s ease;
 }
 
-/* 🔥 línea animada */
+/* línea animada */
 .link::after {
   content: '';
   position: absolute;
@@ -60,7 +61,7 @@
   transition: width 0.3s ease;
 }
 
-/* 🔥 hover */
+/* hover */
 .link:hover {
   background: var(--gray-100);
 }
@@ -69,7 +70,7 @@
   width: 80%;
 }
 
-/* 🔥 activo */
+/* activo */
 .active {
   background: var(--gray-100);
   color: var(--primary-dark);
@@ -83,6 +84,14 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.guestActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .userName {
@@ -90,7 +99,7 @@
   color: var(--gray-900);
 }
 
-/* 🔥 botón mejorado */
+/* 🔥 botón principal mejorado */
 .authBtn {
   border: none;
   background: var(--primary);
@@ -105,6 +114,22 @@
 .authBtn:hover {
   background: var(--primary-dark);
   transform: translateY(-1px);
+}
+
+/* 🔥 botón secundario */
+.secondaryAuthBtn {
+  border: none;
+  background: white;
+  color: var(--primary-dark);
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 800;
+  transition: all 0.25s ease;
+}
+
+.secondaryAuthBtn:hover {
+  background: var(--gray-100);
 }
 
 /* 🔥 badge con animación */
@@ -136,5 +161,9 @@
 
   .brand {
     min-width: auto;
+  }
+
+  .auth {
+    justify-content: flex-start;
   }
 }

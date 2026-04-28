@@ -1,39 +1,77 @@
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 
+import useAuth from '../hooks/useAuth';
 import styles from '../styles/UserProfile.module.css';
 import { formatCOP } from '../utils/formatCOP';
-import { loadOrders } from '../utils/ordersStorage';
+import { loadOrders, loadOrdersByUserId } from '../utils/ordersStorage';
 
-function UserProfile({ user }) {
+function UserProfile() {
   const navigate = useNavigate();
-  const orders = useMemo(() => loadOrders(), []);
+  const { currentUser } = useAuth();
+
+  const orders = useMemo(() => {
+    if (currentUser?.id) {
+      return loadOrdersByUserId(currentUser.id);
+    }
+    return loadOrders(); // fallback
+  }, [currentUser?.id]);
+
   const latestOrder = orders[0] ?? null;
 
+  // 🔒 protección (opcional si ya usas ProtectedRoute)
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+
   const profile = {
-    name: user?.name || latestOrder?.customer?.fullName || 'Invitado',
-    email: user?.email || latestOrder?.customer?.email || 'Sin correo registrado',
-    phone: user?.phone || latestOrder?.customer?.phone || 'Sin telefono registrado',
-    address: user?.address || latestOrder?.customer?.address || 'Aun no hay direccion registrada',
-    city: user?.city || latestOrder?.customer?.city || 'Sin ciudad registrada',
-    postalCode: user?.postalCode || latestOrder?.customer?.postalCode || '---',
+    name:
+      currentUser?.name ||
+      latestOrder?.customer?.fullName ||
+      'Invitado',
+
+    email:
+      currentUser?.email ||
+      latestOrder?.customer?.email ||
+      'Sin correo registrado',
+
+    phone:
+      currentUser?.phone ||
+      latestOrder?.customer?.phone ||
+      'Sin teléfono registrado',
+
+    address:
+      currentUser?.address ||
+      latestOrder?.customer?.address ||
+      'Aún no hay dirección registrada',
+
+    city:
+      currentUser?.city ||
+      latestOrder?.customer?.city ||
+      'Sin ciudad registrada',
+
+    postalCode:
+      currentUser?.postalCode ||
+      latestOrder?.customer?.postalCode ||
+      '---',
   };
 
   const stats = {
     totalOrders: orders.length,
     latestOrderId: latestOrder?.id ?? 'Sin compras',
-    latestTotal: latestOrder ? formatCOP(latestOrder.totals.total) : 'Sin compras',
+    latestTotal: latestOrder
+      ? formatCOP(latestOrder.totals.total)
+      : 'Sin compras',
   };
 
   return (
     <section className={styles.container}>
       <header className={styles.header}>
         <div>
-          <p className={styles.eyebrow}>Semana 10</p>
+          <p className={styles.eyebrow}>Perfil</p>
           <h1 className={styles.title}>Mi cuenta</h1>
           <p className={styles.subtitle}>
-            Esta vista centraliza el perfil mock del cliente y un resumen rapido de sus compras
-            recientes.
+            Información del usuario y resumen de tus compras recientes.
           </p>
         </div>
 
@@ -45,57 +83,71 @@ function UserProfile({ user }) {
           >
             Ver historial
           </button>
-          <button type="button" className={styles.primaryButton} onClick={() => navigate('/')}>
+          <button
+            type="button"
+            className={styles.primaryButton}
+            onClick={() => navigate('/')}
+          >
             Volver al inicio
           </button>
         </div>
       </header>
 
       <div className={styles.layout}>
+        {/* 👤 PERFIL */}
         <section className={styles.card}>
           <h2 className={styles.sectionTitle}>Datos del perfil</h2>
+
           <div className={styles.infoGrid}>
             <div className={styles.infoItem}>
               <span className={styles.label}>Nombre</span>
               <strong>{profile.name}</strong>
             </div>
+
             <div className={styles.infoItem}>
               <span className={styles.label}>Correo</span>
               <strong>{profile.email}</strong>
             </div>
+
             <div className={styles.infoItem}>
-              <span className={styles.label}>Telefono</span>
+              <span className={styles.label}>Teléfono</span>
               <strong>{profile.phone}</strong>
             </div>
+
             <div className={styles.infoItem}>
-              <span className={styles.label}>Direccion</span>
+              <span className={styles.label}>Dirección</span>
               <strong>{profile.address}</strong>
             </div>
+
             <div className={styles.infoItem}>
               <span className={styles.label}>Ciudad</span>
               <strong>{profile.city}</strong>
             </div>
+
             <div className={styles.infoItem}>
-              <span className={styles.label}>Codigo postal</span>
+              <span className={styles.label}>Código postal</span>
               <strong>{profile.postalCode}</strong>
             </div>
           </div>
         </section>
 
+        {/* 🧾 RESUMEN */}
         <aside className={styles.card}>
           <h2 className={styles.sectionTitle}>Resumen de compras</h2>
 
           <div className={styles.statsGrid}>
             <div className={styles.statCard}>
-              <span className={styles.label}>Ordenes guardadas</span>
+              <span className={styles.label}>Órdenes</span>
               <strong>{stats.totalOrders}</strong>
             </div>
+
             <div className={styles.statCard}>
-              <span className={styles.label}>Ultima orden</span>
+              <span className={styles.label}>Última orden</span>
               <strong>{stats.latestOrderId}</strong>
             </div>
+
             <div className={styles.statCard}>
-              <span className={styles.label}>Ultimo total</span>
+              <span className={styles.label}>Último total</span>
               <strong>{stats.latestTotal}</strong>
             </div>
           </div>
@@ -103,23 +155,23 @@ function UserProfile({ user }) {
           {latestOrder ? (
             <div className={styles.latestOrder}>
               <p className={styles.latestOrderText}>
-                Tu compra mas reciente fue enviada con{' '}
+                Tu última compra fue enviada con{' '}
                 <strong>{latestOrder.shippingMethod.label}</strong> y pagada con{' '}
                 <strong>{latestOrder.paymentMethod.label}</strong>.
               </p>
+
               <button
                 type="button"
                 className={styles.secondaryButton}
                 onClick={() => navigate(`/user/orders/${latestOrder.id}`)}
               >
-                Abrir ultima orden
+                Ver última orden
               </button>
             </div>
           ) : (
             <div className={styles.emptyState}>
               <p className={styles.emptyText}>
-                Aun no hay compras registradas. Cuando completes el checkout, el historial quedara
-                disponible desde esta seccion.
+                Aún no hay compras registradas. Completa un checkout para ver tu historial.
               </p>
             </div>
           )}

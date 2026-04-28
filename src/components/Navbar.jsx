@@ -1,19 +1,24 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 
-import logo from '../assets/img-logos/logo-Cesde-2023.svg';
+import logo from '../assets/logo.jpg';
+import useAuth from '../hooks/useAuth';
 import styles from '../styles/Navbar.module.css';
 
-function Navbar({ user, onSignIn, onSignOut, cartItemCount = 0 }) {
-  const userLabel = user?.name ?? 'Invitado';
-  const isLoggedIn = Boolean(user);
+function Navbar({ cartItemCount = 0 }) {
+  const { currentUser, logout } = useAuth();
+
+  const isLoggedIn = Boolean(currentUser);
+  const userLabel = currentUser?.name ?? 'Invitado';
+
+  const navigate = useNavigate();
   const location = useLocation();
 
   const linksRef = useRef(null);
   const [indicatorStyle, setIndicatorStyle] = useState({});
 
   // ===============================
-  // 📍 DETECCIÓN DE SECCIONES
+  // 📍 SECCIONES ACTIVAS
   // ===============================
   const isHomeSection =
     location.pathname === '/' || location.pathname.startsWith('/category/');
@@ -23,7 +28,10 @@ function Navbar({ user, onSignIn, onSignOut, cartItemCount = 0 }) {
     location.pathname.startsWith('/checkout') ||
     location.pathname.startsWith('/order-confirmation');
 
-  const isAccountSection = location.pathname.startsWith('/user/');
+  const isAccountSection =
+    location.pathname.startsWith('/user/') ||
+    location.pathname === '/login' ||
+    location.pathname === '/register';
 
   const getLinkClass = (isActive) =>
     `${styles.link} ${isActive ? styles.active : ''}`;
@@ -42,6 +50,21 @@ function Navbar({ user, onSignIn, onSignOut, cartItemCount = 0 }) {
     }
   }, [location.pathname]);
 
+  // ===============================
+  // 🔐 ACCIONES
+  // ===============================
+  const handleAccountNavigation = () => {
+    navigate(isLoggedIn ? '/user/profile' : '/login');
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/', { replace: true });
+  };
+
+  // ===============================
+  // 🚀 UI
+  // ===============================
   return (
     <nav className={styles.navbar}>
       {/* LOGO */}
@@ -79,12 +102,13 @@ function Navbar({ user, onSignIn, onSignOut, cartItemCount = 0 }) {
           )}
         </NavLink>
 
-        <NavLink
-          to="/user/profile"
-          className={() => getLinkClass(isAccountSection)}
+        <button
+          type="button"
+          className={getLinkClass(isAccountSection)}
+          onClick={handleAccountNavigation}
         >
           Mi cuenta
-        </NavLink>
+        </button>
       </div>
 
       {/* USUARIO */}
@@ -92,13 +116,30 @@ function Navbar({ user, onSignIn, onSignOut, cartItemCount = 0 }) {
         <span className={styles.userName}>{userLabel}</span>
 
         {isLoggedIn ? (
-          <button type="button" className={styles.authBtn} onClick={onSignOut}>
+          <button
+            type="button"
+            className={styles.authBtn}
+            onClick={handleLogout}
+          >
             Salir
           </button>
         ) : (
-          <button type="button" className={styles.authBtn} onClick={onSignIn}>
-            Ingresar
-          </button>
+          <div className={styles.guestActions}>
+            <button
+              type="button"
+              className={styles.authBtn}
+              onClick={() => navigate('/login')}
+            >
+              Ingresar
+            </button>
+            <button
+              type="button"
+              className={styles.secondaryAuthBtn}
+              onClick={() => navigate('/register')}
+            >
+              Registrarse
+            </button>
+          </div>
         )}
       </div>
     </nav>

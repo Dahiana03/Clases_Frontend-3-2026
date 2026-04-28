@@ -5,13 +5,11 @@ import ProductCard from '../components/ProductCard';
 import ProductDetailsModal from '../components/ProductDetailsModal';
 import styles from '../styles/CategoryProducts.module.css';
 import productListStyles from '../styles/ProductList.module.css';
-import { loadProducts } from '../utils/productsStorage';
 
-function CategoryProducts({ cartItems, onAddToCart }) {
+function CategoryProducts({ products, cartItems, onAddToCart }) {
   const [query, setQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [productsState] = useState(loadProducts);
   const navigate = useNavigate();
   const { categoryName } = useParams();
 
@@ -33,7 +31,7 @@ function CategoryProducts({ cartItems, onAddToCart }) {
 
     const q = query.trim().toLowerCase();
 
-    return productsState.filter((product) => {
+    return products.filter((product) => {
       if (product.category !== category) return false;
       if (!q) return true;
 
@@ -41,7 +39,7 @@ function CategoryProducts({ cartItems, onAddToCart }) {
         .toLowerCase()
         .includes(q);
     });
-  }, [category, productsState, query]);
+  }, [category, products, query]);
 
   // 🔍 Modal detalles
   const handleOpenDetails = (product) => {

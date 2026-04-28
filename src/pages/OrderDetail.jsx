@@ -1,28 +1,45 @@
 import { useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Navigate } from 'react-router-dom';
 
+import useAuth from '../hooks/useAuth';
 import styles from '../styles/OrderDetail.module.css';
 import { formatCOP } from '../utils/formatCOP';
-import { loadOrders } from '../utils/ordersStorage';
+import { loadOrders, loadOrdersByUserId } from '../utils/ordersStorage';
 
 function OrderDetail() {
   const navigate = useNavigate();
   const { orderId } = useParams();
+  const { currentUser } = useAuth();
 
-  const order = useMemo(
-    () => loadOrders().find((savedOrder) => savedOrder.id === orderId) ?? null,
-    [orderId]
-  );
+  const order = useMemo(() => {
+    // 🔐 si hay usuario → usar sus órdenes
+    if (currentUser?.id) {
+      return (
+        loadOrdersByUserId(currentUser.id).find(
+          (savedOrder) => savedOrder.id === orderId
+        ) ?? null
+      );
+    }
+
+    // 🌐 fallback → todas las órdenes (modo local)
+    return (
+      loadOrders().find((savedOrder) => savedOrder.id === orderId) ?? null
+    );
+  }, [currentUser?.id, orderId]);
+
+  // 🔒 opcional: proteger si no hay usuario
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
 
   if (!order) {
     return (
       <section className={styles.container}>
         <div className={styles.emptyState}>
-          <p className={styles.eyebrow}>Semana 10</p>
+          <p className={styles.eyebrow}>Detalle</p>
           <h1 className={styles.title}>Orden no encontrada</h1>
           <p className={styles.subtitle}>
-            El identificador solicitado no existe en el historial persistido o ya no esta disponible
-            en este navegador.
+            El identificador no existe o no pertenece al usuario.
           </p>
           <div className={styles.actions}>
             <button
@@ -32,7 +49,11 @@ function OrderDetail() {
             >
               Volver al historial
             </button>
-            <button type="button" className={styles.primaryButton} onClick={() => navigate('/')}>
+            <button
+              type="button"
+              className={styles.primaryButton}
+              onClick={() => navigate('/')}
+            >
               Ir al inicio
             </button>
           </div>
@@ -50,10 +71,10 @@ function OrderDetail() {
     <section className={styles.container}>
       <header className={styles.header}>
         <div>
-          <p className={styles.eyebrow}>Semana 10</p>
+          <p className={styles.eyebrow}>Detalle</p>
           <h1 className={styles.title}>Detalle de orden</h1>
           <p className={styles.subtitle}>
-            Consulta el pedido completo, con los datos del cliente, envio, pago y totales.
+            Consulta el pedido completo, con datos del cliente, envío, pago y totales.
           </p>
         </div>
 
@@ -85,7 +106,7 @@ function OrderDetail() {
           <strong>{formattedDate}</strong>
         </div>
         <div className={styles.summaryCard}>
-          <span className={styles.label}>Envio</span>
+          <span className={styles.label}>Envío</span>
           <strong>{order.shippingMethod.label}</strong>
         </div>
         <div className={styles.summaryCard}>
@@ -98,9 +119,7 @@ function OrderDetail() {
         <section className={styles.card}>
           <h2 className={styles.sectionTitle}>Cliente</h2>
           <div className={styles.infoList}>
-            <p>
-              <strong>{order.customer.fullName}</strong>
-            </p>
+            <p><strong>{order.customer.fullName}</strong></p>
             <p>{order.customer.email}</p>
             <p>{order.customer.phone}</p>
             <p>{order.customer.address}</p>
@@ -122,7 +141,7 @@ function OrderDetail() {
               <strong>{formatCOP(order.totals.tax)}</strong>
             </div>
             <div className={styles.totalRow}>
-              <span>Envio</span>
+              <span>Envío</span>
               <strong>{formatCOP(order.totals.shipping)}</strong>
             </div>
             <div className={`${styles.totalRow} ${styles.totalRowStrong}`}>
@@ -138,13 +157,19 @@ function OrderDetail() {
         <div className={styles.itemList}>
           {order.items.map((item) => (
             <article key={`${order.id}-${item.id}`} className={styles.item}>
-              <img className={styles.itemImage} src={item.image} alt={item.name} />
+              <img
+                className={styles.itemImage}
+                src={item.image}
+                alt={item.name}
+              />
               <div className={styles.itemContent}>
                 <h3 className={styles.itemName}>{item.name}</h3>
-                <p className={styles.itemMeta}>Categoria: {item.category}</p>
+                <p className={styles.itemMeta}>Categoría: {item.category}</p>
                 <p className={styles.itemMeta}>Cantidad: {item.quantity}</p>
               </div>
-              <strong className={styles.itemPrice}>{formatCOP(item.price * item.quantity)}</strong>
+              <strong className={styles.itemPrice}>
+                {formatCOP(item.price * item.quantity)}
+              </strong>
             </article>
           ))}
         </div>

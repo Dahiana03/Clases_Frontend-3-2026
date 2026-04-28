@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import styles from '../styles/Checkout.module.css';
 import {
@@ -13,16 +13,29 @@ const EMAIL_REGEX = /^[^@]+@[^@]+\.[^@]+$/;
 function Checkout({ cartItems, user, onBack, onCompleteCheckout, onSuccess }) {
   const [values, setValues] = useState({
     fullName: user?.name ?? '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    postalCode: '',
+    email: user?.email ?? '',
+    phone: user?.phone ?? '',
+    address: user?.address ?? '',
+    city: user?.city ?? '',
+    postalCode: user?.postalCode ?? '',
     shippingMethod: SHIPPING_OPTIONS[0].id,
     paymentMethod: PAYMENT_METHODS[0].id,
   });
 
   const [errors, setErrors] = useState({});
+
+  // 🔥 sincroniza datos del usuario
+  useEffect(() => {
+    setValues((prev) => ({
+      ...prev,
+      fullName: user?.name ?? prev.fullName,
+      email: user?.email ?? prev.email,
+      phone: user?.phone ?? prev.phone,
+      address: user?.address ?? prev.address,
+      city: user?.city ?? prev.city,
+      postalCode: user?.postalCode ?? prev.postalCode,
+    }));
+  }, [user]);
 
   const totals = useMemo(
     () => calculateOrderTotals(cartItems, values.shippingMethod),
@@ -55,6 +68,8 @@ function Checkout({ cartItems, user, onBack, onCompleteCheckout, onSuccess }) {
     if (!values.address.trim()) nextErrors.address = 'Ingresa la dirección.';
     if (!values.city.trim()) nextErrors.city = 'Ingresa la ciudad.';
     if (!values.postalCode.trim()) nextErrors.postalCode = 'Ingresa el código postal.';
+    if (!values.shippingMethod) nextErrors.shippingMethod = 'Selecciona un método de envío.';
+    if (!values.paymentMethod) nextErrors.paymentMethod = 'Selecciona un método de pago.';
 
     return nextErrors;
   };
@@ -80,9 +95,9 @@ function Checkout({ cartItems, user, onBack, onCompleteCheckout, onSuccess }) {
       paymentMethodId: values.paymentMethod,
     });
 
-    // 🚀 navegación controlada desde afuera
-    if (order && onSuccess) {
-      onSuccess(order);
+    // 🔥 navegación controlada desde App
+    if (order) {
+      onSuccess?.(order);
     }
   };
 
@@ -119,6 +134,8 @@ function Checkout({ cartItems, user, onBack, onCompleteCheckout, onSuccess }) {
 
       <div className={styles.layout}>
         <form className={styles.formCard} onSubmit={handleSubmit}>
+          
+          {/* 👤 CLIENTE */}
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>Datos del cliente</h2>
 
@@ -150,7 +167,70 @@ function Checkout({ cartItems, user, onBack, onCompleteCheckout, onSuccess }) {
                 placeholder="Teléfono"
               />
               {errors.phone && <span className={styles.error}>{errors.phone}</span>}
+
+              <input
+                className={styles.input}
+                name="address"
+                value={values.address}
+                onChange={handleChange}
+                placeholder="Dirección"
+              />
+              {errors.address && <span className={styles.error}>{errors.address}</span>}
+
+              <input
+                className={styles.input}
+                name="city"
+                value={values.city}
+                onChange={handleChange}
+                placeholder="Ciudad"
+              />
+              {errors.city && <span className={styles.error}>{errors.city}</span>}
+
+              <input
+                className={styles.input}
+                name="postalCode"
+                value={values.postalCode}
+                onChange={handleChange}
+                placeholder="Código postal"
+              />
+              {errors.postalCode && <span className={styles.error}>{errors.postalCode}</span>}
             </div>
+          </section>
+
+          {/* 🚚 ENVÍO */}
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Método de envío</h2>
+            {SHIPPING_OPTIONS.map((opt) => (
+              <label key={opt.id}>
+                <input
+                  type="radio"
+                  name="shippingMethod"
+                  value={opt.id}
+                  checked={values.shippingMethod === opt.id}
+                  onChange={handleChange}
+                />
+                {opt.label} - {formatCOP(opt.price)}
+              </label>
+            ))}
+            {errors.shippingMethod && <span className={styles.error}>{errors.shippingMethod}</span>}
+          </section>
+
+          {/* 💳 PAGO */}
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Método de pago</h2>
+            {PAYMENT_METHODS.map((opt) => (
+              <label key={opt.id}>
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value={opt.id}
+                  checked={values.paymentMethod === opt.id}
+                  onChange={handleChange}
+                />
+                {opt.label}
+              </label>
+            ))}
+            {errors.paymentMethod && <span className={styles.error}>{errors.paymentMethod}</span>}
           </section>
 
           <div className={styles.actions}>
@@ -163,6 +243,7 @@ function Checkout({ cartItems, user, onBack, onCompleteCheckout, onSuccess }) {
           </div>
         </form>
 
+        {/* 🧾 RESUMEN */}
         <aside className={styles.summaryCard}>
           {cartItems.map((item) => (
             <div key={item.id}>

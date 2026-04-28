@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import homeStyles from '../styles/Home.module.css';
 import { loadProducts } from '../utils/productsStorage';
@@ -49,11 +50,10 @@ function Home({ onOpenCategory }) {
 
       <div className={homeStyles.categoryGrid}>
         {categoryTiles.map(({ category, product }) => (
-          <button
+          <Link
             key={category}
-            type="button"
+            to={`/category/${encodeURIComponent(category)}`}
             className={homeStyles.categoryTile}
-            onClick={() => onOpenCategory(category)} // 🔥 AQUÍ está el cambio importante
             aria-label={`Ver productos de ${category}`}
           >
             <img
@@ -67,7 +67,7 @@ function Home({ onOpenCategory }) {
                 {category}
               </span>
             </span>
-          </button>
+          </Link>
         ))}
       </div>
     </div>
